@@ -9,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using MrTomato.Data;
+using MrTomato.Helpers;
 using MrTomato.Models;
 using System;
 using System.Collections.Generic;
@@ -37,8 +38,9 @@ namespace MrTomato
 
             services.AddTransient<IUsersRepository, UsersRepository>();
             services.AddTransient<IRolesRepository, RolesRepository>();
-            //services.AddTransient<ICategoriesRepository, CategoriesRepository>();
+            services.AddTransient<ICategoriesRepository, CategoriesRepository>();
 
+            services.AddScoped<JwtService>();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "MrTomato", Version = "v1" });

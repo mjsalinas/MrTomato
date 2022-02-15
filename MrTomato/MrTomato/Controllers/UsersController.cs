@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MrTomato.Data;
 using MrTomato.DTOs;
+using MrTomato.Helpers;
 using MrTomato.Models;
 using System;
 using System.Collections.Generic;
@@ -15,15 +16,37 @@ namespace MrTomato.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly IUsersRepository _usersRepository; 
-        public UsersController(IUsersRepository usersRepository)
+        private readonly IUsersRepository _usersRepository;
+        private readonly JwtService _jwtService;
+        public UsersController(IUsersRepository usersRepository, JwtService jwtService)
         {
             _usersRepository = usersRepository;
+            _jwtService = jwtService;
         }
 
         //add login logout 
-        
-       
+        [HttpPost("/login")]
+        public LoginDto Login([FromBody] LoginDto request)
+        {
+            UserDto user = _usersRepository.GetUserByUsername(request.Username);
+            LoginDto response = new LoginDto();
+            if (!string.IsNullOrEmpty(user.ErrorMessage) && user.Username == null)
+            {
+                response.ErrorMessage = "Username not found";
+                return response;
+
+            }
+            else if (!BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
+            {
+                response.ErrorMessage = "Wrong password";
+                return response;
+
+            }
+
+            response.AuthToken = _jwtService.GenerateToken(user.Id);
+            return response;
+        }
+
 
         // GET: api/<UserController>
         [HttpGet]
@@ -48,20 +71,7 @@ namespace MrTomato.Controllers
             UserDto response = _usersRepository.CreateUser(user);
             return response;
         }
-        [HttpPost("/login")]
-        public UserDto Login([FromBody] LoginDto request)
-        {
-            UserDto response = _usersRepository.GetUserByUsername(request.Username);
-            if (!string.IsNullOrEmpty(response.ErrorMessage ) && response.Username == null)
-            {
-                response.ErrorMessage = "Username not found";
-            }
-            else if (!BCrypt.Net.BCrypt.Verify(request.Password, response.Password))
-            {
-                response.ErrorMessage = "Wrong password";
-            }
-            return response;
-        }
+        
         // PUT api/<UserController>/5
         [HttpPut]
         public UserDto UpdateUser([FromBody] UserDto user)
