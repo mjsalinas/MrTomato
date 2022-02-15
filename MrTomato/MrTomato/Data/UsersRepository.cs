@@ -15,6 +15,7 @@ namespace MrTomato.Data
             dbContext = db;
         }
 
+        
         public UserDto GetUserById(int id) {
             UserDto response = new UserDto();
             try
@@ -33,7 +34,28 @@ namespace MrTomato.Data
                 return response;
             }
         }
+        public UserDto GetUserByUsername(string username)
+        {
+            UserDto response = new UserDto();
+            var user = dbContext.Users.FirstOrDefault(user => user.Username == username);
 
+            if(user == null)
+            {
+                response.ErrorMessage ="User Not Found";
+            }
+            else
+            {
+                response.Id = user.Id;
+                response.Name = user.Name;
+                response.LastName = user.LastName;
+                response.Role = user.Role;
+                response.Username = user.Username;
+                response.Password = user.Password;
+            }
+          
+                return response;
+            
+        }
         public List<UserDto> GetUsers()
         {
             List<UserDto> usersDto = new List<UserDto>();
@@ -60,7 +82,7 @@ namespace MrTomato.Data
                 LastName = newUser.LastName,
                 Role = newUser.Role,
                 Username = newUser.Username,
-                Password = newUser.Password
+                Password = BCrypt.Net.BCrypt.HashPassword(newUser.Password)
             };
             dbContext.Users.Add(users);
             dbContext.SaveChanges();
@@ -81,7 +103,7 @@ namespace MrTomato.Data
             existingUser.LastName = newUser.LastName;
             existingUser.Role = newUser.Role;
             existingUser.Username = newUser.Username;
-            existingUser.Password = newUser.Password;
+            existingUser.Password = BCrypt.Net.BCrypt.HashPassword(newUser.Password);
             dbContext.SaveChanges();
             return newUser;
         }

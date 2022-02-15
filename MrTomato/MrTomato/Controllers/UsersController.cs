@@ -22,9 +22,11 @@ namespace MrTomato.Controllers
         }
 
         //add login logout 
+        
+       
 
         // GET: api/<UserController>
-       [HttpGet]
+        [HttpGet]
        public List<UserDto> GetUsers()
         {
             List<UserDto> response = _usersRepository.GetUsers();
@@ -46,7 +48,20 @@ namespace MrTomato.Controllers
             UserDto response = _usersRepository.CreateUser(user);
             return response;
         }
-
+        [HttpPost("/login")]
+        public UserDto Login([FromBody] LoginDto request)
+        {
+            UserDto response = _usersRepository.GetUserByUsername(request.Username);
+            if (!string.IsNullOrEmpty(response.ErrorMessage ) && response.Username == null)
+            {
+                response.ErrorMessage = "Username not found";
+            }
+            else if (!BCrypt.Net.BCrypt.Verify(request.Password, response.Password))
+            {
+                response.ErrorMessage = "Wrong password";
+            }
+            return response;
+        }
         // PUT api/<UserController>/5
         [HttpPut]
         public UserDto UpdateUser([FromBody] UserDto user)

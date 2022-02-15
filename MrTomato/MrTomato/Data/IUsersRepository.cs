@@ -9,6 +9,7 @@ namespace MrTomato.Data
     public interface IUsersRepository
     {
         public UserDto GetUserById(int id);
+        public UserDto GetUserByUsername(string username);
         public List<UserDto> GetUsers();
         public UserDto CreateUser(UserDto newUser);
         public UserDto UpdateUser(UserDto newUser);
