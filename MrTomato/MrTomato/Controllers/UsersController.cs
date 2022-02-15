@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using MrTomato.Data;
 using MrTomato.DTOs;
 using MrTomato.Helpers;
@@ -26,25 +27,25 @@ namespace MrTomato.Controllers
 
         //add login logout 
         [HttpPost("/login")]
-        public LoginDto Login([FromBody] LoginDto request)
+        public IActionResult Login([FromBody] LoginDto request)
         {
             UserDto user = _usersRepository.GetUserByUsername(request.Username);
-            LoginDto response = new LoginDto();
             if (!string.IsNullOrEmpty(user.ErrorMessage) && user.Username == null)
             {
-                response.ErrorMessage = "Username not found";
-                return response;
-
+                return BadRequest(new { message = "Username not found" });
             }
             else if (!BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
             {
-                response.ErrorMessage = "Wrong password";
-                return response;
-
+                return BadRequest(new { message = "Wrong password" });
             }
 
-            response.AuthToken = _jwtService.GenerateToken(user.Id);
-            return response;
+            string jwt = _jwtService.GenerateToken(user.Id);
+
+            Response.Cookies.Append("jwt", jwt, new CookieOptions
+            {
+                HttpOnly = true
+            });
+            return Ok();
         }
 
 

@@ -30,7 +30,7 @@ namespace MrTomato
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
+            services.AddCors();
             services.AddControllers();
             var connectionString = Configuration.GetConnectionString("DefaultConnection");
             services.AddDbContext<DataContext>(options =>
@@ -60,6 +60,12 @@ namespace MrTomato
             app.UseHttpsRedirection();
 
             app.UseRouting();
+            app.UseCors(options => options
+            .WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
+            );
 
             app.UseAuthorization();
 
